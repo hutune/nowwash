@@ -17,3 +17,11 @@ utilities/mcp-gdrive/node_modules/
 # Temp
 *.tmp
 *.log
+
+# Node & Next.js
+node_modules/
+.next/
+out/
+build/
+.env.local
+.env.*.local
