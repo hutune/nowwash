@@ -1,0 +1,19 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Credentials & Secrets
+client_secret_*.json
+*.credentials.json
+.gdrive-server-credentials.json
+
+# MCP
+utilities/mcp-gdrive/node_modules/
+
+# IDE
+.vscode/
+.idea/
+
+# Temp
+*.tmp
+*.log
