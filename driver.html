@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NowWash — Tài xế</title>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F8FAFB;--bg2:#fff;--bg3:#F0F9FF;--text:#1A1A2E;--text2:#4B5563;--text3:#6B7280;--text4:#9CA3AF;--border:#E5E7EB;--accent:#0077B6;--accent2:#00B4D8;--accent-bg:#E6F4FA;--card:#fff;--input-bg:#fff;--shadow:rgba(0,119,182,.08);--green:#16A34A;--green-bg:#DCFCE7;--orange:#EA580C;--orange-bg:#FFF7ED;--red:#DC2626;--red-bg:#FEF2F2}
+[data-theme="dark"]{--bg:#0F1419;--bg2:#1A1F2E;--bg3:#1E2636;--text:#E8EAED;--text2:#B0B8C1;--text3:#8B95A2;--text4:#606B78;--border:#2A3140;--accent:#4DB8E8;--accent2:#00B4D8;--accent-bg:rgba(77,184,232,.12);--card:#1A1F2E;--input-bg:#1E2636;--shadow:rgba(0,0,0,.25);--green:#4ADE80;--green-bg:rgba(74,222,128,.12);--orange:#FB923C;--orange-bg:rgba(251,146,60,.12);--red:#F87171;--red-bg:rgba(248,113,113,.12)}
+*{margin:0;padding:0;box-sizing:border-box}
+html{overflow-x:hidden}
+body{font-family:'Be Vietnam Pro',sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;overflow-x:hidden;padding-bottom:72px;transition:background .3s,color .3s}
+.app-container{max-width:960px;margin:0 auto}
+
+/* Fixed Top Bar */
+.top-fixed{position:fixed;top:0;left:0;right:0;z-index:50;background:var(--bg);transition:background .3s}
+
+/* Header */
+.header{background:var(--bg2);border-bottom:1px solid var(--border);transition:background .3s}
+.header-inner{max-width:960px;margin:0 auto;padding:14px 20px;display:flex;align-items:center;justify-content:space-between}
+@media(min-width:768px){.header-inner{padding:14px 32px}}
+.header-left{display:flex;align-items:center;gap:10px}
+.avatar{width:36px;height:36px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;flex-shrink:0}
+.header-info .driver-name{font-size:14px;font-weight:600}
+.header-info .driver-status{font-size:11px;color:var(--green);font-weight:500;display:flex;align-items:center;gap:4px}
+.header-info .driver-status::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--green)}
+.header-actions{display:flex;gap:8px}
+.hdr-btn{background:none;border:1.5px solid var(--border);width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s}
+.hdr-btn:hover{border-color:var(--accent);background:var(--accent-bg)}
+.hdr-btn svg{width:18px;height:18px;stroke:var(--text2);fill:none}
+/* Tabs */
+.tabs-wrap{padding:10px 20px;max-width:960px;margin:0 auto;background:var(--bg);transition:background .3s}
+@media(min-width:768px){.tabs-wrap{padding:10px 32px}}
+.tabs{display:flex;gap:0;background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.tab{flex:1;padding:11px 0;font-size:13px;font-weight:500;color:var(--text3);text-align:center;cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;background:none;border-top:none;border-left:none;border-right:none;font-family:inherit}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:600;background:var(--accent-bg)}
+.tab .badge{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 5px;border-radius:9px;font-size:10px;font-weight:600;margin-left:4px;color:#fff;background:var(--accent)}
+.tab .badge.orange{background:var(--orange)}
+
+/* Content offset - header(65px) + tabs(~60px) */
+.main-content{padding-top:120px}
+
+/* Order List */
+.order-list{padding:12px 20px;display:flex;flex-direction:column;gap:10px}
+@media(min-width:768px){.order-list{padding:16px 32px;display:grid;grid-template-columns:repeat(2,1fr);gap:16px}}
+@media(min-width:1024px){.order-list{grid-template-columns:repeat(2,1fr)}}
+.tab-content{display:none}
+.tab-content.active{display:block}
+.empty-state{text-align:center;padding:48px 20px;color:var(--text3)}
+.empty-state svg{width:48px;height:48px;stroke:var(--border);margin-bottom:12px}
+.empty-state p{font-size:14px}
+
+/* Order Card */
+.o-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;cursor:pointer;transition:all .2s}
+.o-card:hover{box-shadow:0 4px 20px var(--shadow)}
+.o-card:active{transform:scale(.99)}
+.o-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.o-id{font-size:13px;font-weight:600}
+.o-badge{font-size:11px;font-weight:500;padding:4px 10px;border-radius:8px}
+.o-badge.pending{background:var(--orange-bg);color:var(--orange)}
+.o-badge.pickup{background:var(--accent-bg);color:var(--accent)}
+.o-badge.delivering{background:var(--accent-bg);color:var(--accent)}
+.o-badge.done{background:var(--green-bg);color:var(--green)}
+.o-customer{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.o-avatar{width:32px;height:32px;border-radius:50%;background:var(--accent-bg);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex-shrink:0}
+.o-cname{font-size:14px;font-weight:500}
+.o-cphone{font-size:12px;color:var(--text3)}
+.o-details{display:flex;flex-direction:column;gap:6px}
+.o-row{display:flex;align-items:flex-start;gap:8px;font-size:13px;color:var(--text2)}
+.o-row svg{width:16px;height:16px;stroke:var(--text4);flex-shrink:0;margin-top:1px}
+.o-row strong{color:var(--text);font-weight:500}
+.o-footer{display:flex;align-items:center;justify-content:space-between;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
+.o-pkg{font-size:13px;font-weight:600;color:var(--accent)}
+.o-time{font-size:12px;color:var(--text3);display:flex;align-items:center;gap:4px}
+.o-actions{display:flex;gap:8px;margin-top:12px}
+.o-btn{flex:1;padding:10px 16px;border-radius:10px;font-size:13px;font-weight:500;cursor:pointer;border:1.5px solid transparent;font-family:inherit;transition:all .2s;text-align:center;height:40px;display:flex;align-items:center;justify-content:center;gap:4px}
+.o-btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.o-btn.primary:hover{background:#006199;border-color:#006199}
+.o-btn.secondary{background:var(--accent-bg);color:var(--accent);border-color:var(--accent)}
+.o-btn.success{background:var(--green);color:#fff;border-color:var(--green)}
+.o-btn.success:hover{opacity:.9}
+.o-btn.call{background:var(--green-bg);color:var(--green);border-color:var(--green)}
+
+/* Bottom Nav */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-top:1px solid var(--border);display:flex;z-index:50;padding:6px 0;padding-bottom:max(6px,env(safe-area-inset-bottom));transition:background .3s}
+.bottom-nav-inner{max-width:960px;margin:0 auto;display:flex;width:100%}
+.bnav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 0;cursor:pointer;background:none;border:none;font-family:inherit;transition:color .2s}
+.bnav-item svg{width:22px;height:22px;stroke:var(--text4);fill:none;transition:stroke .2s}
+.bnav-item span{font-size:10px;color:var(--text4);font-weight:500;transition:color .2s}
+.bnav-item.active svg{stroke:var(--accent)}
+.bnav-item.active span{color:var(--accent);font-weight:600}
+
+/* Detail Modal */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px)}
+.modal-overlay.open{display:flex}
+@media(min-width:768px){.modal-overlay{align-items:center}}
+.detail-modal{background:var(--bg2);border-radius:20px 20px 0 0;width:100%;max-width:500px;max-height:85vh;overflow-y:auto;padding:16px 20px 20px;animation:slideUp .3s ease}
+@media(min-width:768px){.detail-modal{border-radius:20px;max-width:520px;max-height:80vh;animation:modalFadeIn .3s ease;box-shadow:0 20px 60px rgba(0,0,0,.2)}}
+@keyframes modalFadeIn{from{opacity:0;transform:scale(.95) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-handle{width:40px;height:4px;border-radius:2px;background:var(--border);margin:0 auto 10px}
+.detail-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.detail-header h3{font-size:17px;font-weight:600}
+.detail-close{background:none;border:none;cursor:pointer;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:background .2s}
+.detail-close:hover{background:var(--accent-bg)}
+.detail-close svg{width:18px;height:18px;stroke:var(--text3)}
+.detail-section{margin-bottom:10px}
+.detail-section h4{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px}
+.detail-card{background:var(--bg);border-radius:10px;padding:10px 14px}
+.detail-row{display:flex;align-items:center;gap:10px;padding:4px 0}
+.detail-row svg{width:16px;height:16px;stroke:var(--accent);flex-shrink:0}
+.detail-row .label{font-size:11px;color:var(--text3)}
+.detail-row .value{font-size:13px;font-weight:500}
+.detail-qr{text-align:center;padding:12px;background:var(--bg);border-radius:10px}
+.detail-qr .qr-box{width:90px;height:90px;border:2px dashed var(--border);border-radius:10px;margin:0 auto 6px;display:flex;align-items:center;justify-content:center;color:var(--text4);font-size:11px}
+.detail-actions{display:flex;gap:8px;margin-top:10px}
+.detail-actions .o-btn{flex:1}
+
+/* Pages */
+.page{display:none}
+.page.active{display:block}
+
+/* Notification Page */
+.page-header{padding:24px 20px 16px;text-align:center}
+@media(min-width:768px){.page-header{padding:32px 32px 20px}}
+.page-header h2{font-size:20px;font-weight:700;margin-bottom:4px}
+.page-header p{font-size:13px;color:var(--text3)}
+.noti-list{padding:0 20px 20px;display:flex;flex-direction:column;gap:8px}
+@media(min-width:768px){.noti-list{padding:0 32px 32px}}
+.noti-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 16px;display:flex;gap:12px;align-items:flex-start;transition:background .3s}
+.noti-card.unread{border-left:3px solid var(--accent);background:var(--accent-bg)}
+.noti-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px}
+.noti-icon.blue{background:var(--accent-bg);color:var(--accent)}
+.noti-icon.green{background:var(--green-bg);color:var(--green)}
+.noti-icon.orange{background:var(--orange-bg);color:var(--orange)}
+.noti-body{flex:1;min-width:0}
+.noti-title{font-size:13px;font-weight:600;margin-bottom:2px}
+.noti-desc{font-size:12px;color:var(--text3);line-height:1.5}
+.noti-time{font-size:11px;color:var(--text4);margin-top:4px}
+
+/* Account Page */
+.profile-card{background:var(--card);border:1px solid var(--border);border-radius:16px;margin:0 20px;padding:20px;display:flex;align-items:center;gap:16px;transition:background .3s}
+@media(min-width:768px){.profile-card{margin:0 32px}}
+.profile-avatar{width:56px;height:56px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;flex-shrink:0}
+.profile-info{flex:1}
+.profile-name{font-size:16px;font-weight:600}
+.profile-role{font-size:12px;color:var(--text3);margin-top:1px}
+.profile-id{font-size:11px;color:var(--text4);margin-top:2px}
+.profile-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:16px 20px}
+@media(min-width:768px){.profile-stats{margin:16px 32px;gap:16px}}
+.p-stat{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;text-align:center;transition:background .3s}
+.p-stat-num{font-size:20px;font-weight:700;color:var(--accent)}
+.p-stat-label{font-size:11px;color:var(--text3);margin-top:2px}
+.menu-section{margin:16px 20px}
+@media(min-width:768px){.menu-section{margin:16px 32px}}
+.menu-section h4{font-size:12px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;padding-left:4px}
+.menu-list{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden}
+.menu-item{display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;transition:background .2s;border-bottom:1px solid var(--border)}
+.menu-item:last-child{border-bottom:none}
+.menu-item:hover{background:var(--accent-bg)}
+.menu-item svg{width:20px;height:20px;stroke:var(--accent);fill:none;flex-shrink:0}
+.menu-item span{flex:1;font-size:14px;font-weight:500}
+.menu-item .arrow{font-size:18px;color:var(--text4);margin-left:auto;flex:none}
+.menu-item.danger span{color:var(--red)}
+.menu-item.danger svg{stroke:var(--red)}
+
+/* Map Placeholder */
+.map-placeholder{margin:20px;border-radius:16px;background:var(--card);border:1px solid var(--border);height:calc(100vh - 220px);display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--text3);gap:12px}
+@media(min-width:768px){.map-placeholder{margin:20px 32px}}
+.map-placeholder svg{width:64px;height:64px;stroke:var(--border)}
+.map-placeholder p{font-size:14px}
+.map-placeholder small{font-size:12px;color:var(--text4)}
+</style>
+</head>
+<body>
+
+<!-- Fixed Top Bar -->
+<div class="top-fixed" id="top-fixed">
+
+<!-- Header -->
+<div class="header">
+  <div class="header-inner">
+  <div class="header-left">
+    <div class="avatar">TX</div>
+    <div class="header-info">
+      <div class="driver-name">Trần Văn Minh</div>
+      <div class="driver-status">Đang hoạt động</div>
+    </div>
+  </div>
+  <div class="header-actions">
+    <button class="hdr-btn" onclick="toggleTheme()" title="Sáng/Tối">
+      <svg id="theme-icon" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+    </button>
+  </div>
+  </div>
+</div>
+
+<!-- Tabs -->
+<div class="tabs-wrap" id="tabs-wrap">
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('pickup')">Chờ lấy <span class="badge orange">5</span></button>
+  <button class="tab" onclick="switchTab('deliver')">Chờ giao <span class="badge">4</span></button>
+  <button class="tab" onclick="switchTab('done')">Hoàn thành <span class="badge" style="background:var(--green)">5</span></button>
+</div>
+</div>
+
+</div><!-- end top-fixed -->
+
+<!-- Main Content -->
+<div class="main-content">
+
+<!-- PAGE: ORDERS -->
+<div class="page active" id="page-orders">
+
+<div class="app-container">
+
+<!-- Tab: Chờ lấy -->
+<div class="tab-content active" id="tab-pickup">
+<div class="order-list">
+
+  <div class="o-card" onclick="openDetail({id:'NW-3102',status:'pickup',name:'Nguyễn Anh',phone:'0901 234 567',addr:'123 Nguyễn Huệ, Q.1',slot:'10:00 – 12:00',pkg:'Gói M — 119.000đ',note:'Để đồ ở quầy bảo vệ tầng trệt'})">
+    <div class="o-top"><span class="o-id">#NW-3102</span><span class="o-badge pending">Chờ lấy</span></div>
+    <div class="o-customer">
+      <div class="o-avatar">NA</div>
+      <div><div class="o-cname">Nguyễn Anh</div><div class="o-cphone">0901 234 567</div></div>
+    </div>
+    <div class="o-details">
+      <div class="o-row"><svg viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 1118 0z"/><circle cx="12" cy="10" r="3"/></svg><span>123 Nguyễn Huệ, Q.1</span></div>
+      <div class="o-row"><svg viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg><span>Slot: <strong>10:00 – 12:00</strong></span></div>
+    </div>
+    <div class="o-footer">
+      <span class="o-pkg">Gói M — 119.000đ</span>
+      <span class="o-time"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> 25 phút</span>
+    </div>
+    <div class="o-actions">
+      <button class="o-btn call" onclick="event.stopPropagation()">📞 Gọi</button>
+      <button class="o-btn primary" onclick="event.stopPropagation();updateStatus('NW-3102','picked')">Đã lấy đồ</button>
+    </div>
+  </div>
+
+  <div class="o-card" onclick="openDetail({id:'NW-3098',status:'pickup',name:'Trần Hương',phone:'0912 345 678',addr:'45 Lê Lợi, Q.3',slot:'10:00 – 12:00',pkg:'Gói S — 79.000đ',note:''})">
+    <div class="o-top"><span class="o-id">#NW-3098</span><span class="o-badge pending">Chờ lấy</span></div>
+    <div class="o-customer">
+      <div class="o-avatar">TH</div>
+      <div><div class="o-cname">Trần Hương</div><div class="o-cphone">0912 345 678</div></div>
+    </div>
+    <div class="o-details">
+      <div class="o-row"><svg viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 1118 0z"/><circle cx="12" cy="10" r="3"/></svg><span>45 Lê Lợi, Q.3</span></div>
+      <div class="o-row"><svg viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg><span>Slot: <strong>10:00 – 12:00</strong></span></div>
+    </div>
+    <div class="o-footer">
+      <span class="o-pkg">Gói S — 79.000đ</span>
+      <span class="o-time"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> 40 phút</span>
+    </div>
+    <div class="o-actions">
+      <button class="o-btn call" onclick="event.stopPropagation()">📞 Gọi</button>
+      <button class="o-btn primary" onclick="event.stopPropagation();updateStatus('NW-3098','picked')">Đã lấy đồ</button>
+    </div>
+  </div>
+
+  <div class="o-card" onclick="openDetail({id:'NW-3095',status:'pickup',name:'Lê Minh',phone:'0987 654 321',addr:'789 Điện Biên Phủ, Bình Thạnh',slot:'14:00 – 16:00',pkg:'Gói L — 169.000đ',note:'Gọi trước 10p'})">
+    <div class="o-top"><span class="o-id">#NW-3095</span><span class="o-badge pending">Chờ lấy</span></div>
+    <div class="o-customer">
+      <div class="o-avatar">LM</div>
+      <div><div class="o-cname">Lê Minh</div><div class="o-cphone">0987 654 321</div></div>
+    </div>
+    <div class="o-details">
+      <div class="o-row"><svg viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 1118 0z"/><circle cx="12" cy="10" r="3"/></svg><span>789 Điện Biên Phủ, Bình Thạnh</span></div>
+      <div class="o-row"><svg viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg><span>Slot: <strong>14:00 – 16:00</strong></span></div>
+    </div>
+    <div class="o-footer">
+      <span class="o-pkg">Gói L — 169.000đ</span>
+      <span class="o-time"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> 2h 15p</span>
+    </div>
+    <div class="o-actions">
+      <button class="o-btn call" onclick="event.stopPropagation()">📞 Gọi</button>
+      <button class="o-btn primary" onclick="event.stopPropagation();updateStatus('NW-3095','picked')">Đã lấy đồ</button>
+    </div>
+  </div>
+
+  <div class="o-card" onclick="openDetail({id:'NW-3091',status:'pickup',name:'Bùi Thị Lan',phone:'0916 789 012',addr:'34 Hai Bà Trưng, Q.1',slot:'10:00 – 12:00',pkg:'Gói M — 119.000đ',note:'Tầng 5, phòng 502'})">
+    <div class="o-top"><span class="o-id">#NW-3091</span><span class="o-badge pending">Chờ lấy</span></div>
+    <div class="o-customer">
+      <div class="o-avatar">BL</div>
+      <div><div class="o-cname">Bùi Thị Lan</div><div class="o-cphone">0916 789 012</div></div>
+    </div>
+    <div class="o-details">
+      <div class="o-row"><svg viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 1118 0z"/><circle cx="12" cy="10" r="3"/></svg><span>34 Hai Bà Trưng, Q.1</span></div>
+      <div class="o-row"><svg viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg><span>Slot: <strong>10:00 – 12:00</strong></span></div>
+    </div>
+    <div class="o-footer">
+      <span class="o-pkg">Gói M — 119.000đ</span>
+      <span class="o-time"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> 35 phút</span>
+    </div>
+    <div class="o-actions">
+      <button class="o-btn call" onclick="event.stopPropagation()">📞 Gọi</button>
+      <button class="o-btn primary" onclick="event.stopPropagation();updateStatus('NW-3091','picked')">Đã lấy đồ</button>
+    </div>
+  </div>
+
+  <div class="o-card" onclick="openDetail({id:'NW-3089',status:'pickup',name:'Đặng Quốc Bảo',phone:'0932 111 222',addr:'150 Cách Mạng Tháng 8, Q.10',slot:'14:00 – 16:00',pkg:'Gói S — 79.000đ',note:'Gọi trước 15p'})">
+    <div class="o-top"><span class="o-id">#NW-3089</span><span class="o-badge pending">Chờ lấy</span></div>
+    <div class="o-customer">
+      <div class="o-avatar">ĐB</div>
+      <div><div class="o-cname">Đặng Quốc Bảo</div><div class="o-cphone">0932 111 222</div></div>
+    </div>
+    <div class="o-details">
+      <div class="o-row"><svg viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 1118 0z"/><circle cx="12" cy="10" r="3"/></svg><span>150 Cách Mạng Tháng 8, Q.10</span></div>
+      <div class="o-row"><svg viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg><span>Slot: <strong>14:00 – 16:00</strong></span></div>
+    </div>
+    <div class="o-footer">
+      <span class="o-pkg">Gói S — 79.000đ</span>
+      <span class="o-time"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> 1h 45p</span>
+    </div>
+    <div class="o-actions">
+      <button class="o-btn call" onclick="event.stopPropagation()">📞 Gọi</button>
+      <button class="o-btn primary" onclick="event.stopPropagation();updateStatus('NW-3089','picked')">Đã lấy đồ</button>
+    </div>
+  </div>
+
+</div>
+</div>
+<div class="tab-content" id="tab-deliver">
+<div class="order-list">
+
+  <div class="o-card" onclick="openDetail({id:'NW-3088',status:'deliver',name:'Phạm Linh',phone:'0903 456 789',addr:'56 Trần Hưng Đạo, Q.5',slot:'16:00 – 18:00',pkg:'Gói M — 119.000đ',note:''})">
+    <div class="o-top"><span class="o-id">#NW-3088</span><span class="o-badge delivering">Chờ giao</span></div>
+    <div class="o-customer">
+      <div class="o-avatar">PL</div>
+      <div><div class="o-cname">Phạm Linh</div><div class="o-cphone">0903 456 789</div></div>
+    </div>
+    <div class="o-details">
+      <div class="o-row"><svg viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 1118 0z"/><circle cx="12" cy="10" r="3"/></svg><span>56 Trần Hưng Đạo, Q.5</span></div>
+      <div class="o-row"><svg viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg><span>Giao trả: <strong>16:00 – 18:00</strong></span></div>
+    </div>
+    <div class="o-footer">
+      <span class="o-pkg">Gói M — 119.000đ</span>
+      <span class="o-time"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> 1h 30p</span>
+    </div>
+    <div class="o-actions">
+      <button class="o-btn call" onclick="event.stopPropagation()">📞 Gọi</button>
+      <button class="o-btn success" onclick="event.stopPropagation();updateStatus('NW-3088','done')">Đã giao xong</button>
+    </div>
+  </div>
+
+  <div class="o-card" onclick="openDetail({id:'NW-3082',status:'deliver',name:'Võ Thuận',phone:'0978 123 456',addr:'12 Pasteur, Q.1',slot:'16:00 – 18:00',pkg:'Gói S — 79.000đ',note:''})">
+    <div class="o-top"><span class="o-id">#NW-3082</span><span class="o-badge delivering">Chờ giao</span></div>
+    <div class="o-customer">
+      <div class="o-avatar">VT</div>
+      <div><div class="o-cname">Võ Thuận</div><div class="o-cphone">0978 123 456</div></div>
+    </div>
+    <div class="o-details">
+      <div class="o-row"><svg viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 1118 0z"/><circle cx="12" cy="10" r="3"/></svg><span>12 Pasteur, Q.1</span></div>
+      <div class="o-row"><svg viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg><span>Giao trả: <strong>16:00 – 18:00</strong></span></div>
+    </div>
+    <div class="o-footer">
+      <span class="o-pkg">Gói S — 79.000đ</span>
+      <span class="o-time"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> 1h 30p</span>
+    </div>
+    <div class="o-actions">
+      <button class="o-btn call" onclick="event.stopPropagation()">📞 Gọi</button>
+      <button class="o-btn success" onclick="event.stopPropagation();updateStatus('NW-3082','done')">Đã giao xong</button>
+    </div>
+  </div>
+
+  <div class="o-card" onclick="openDetail({id:'NW-3079',status:'deliver',name:'Ngô Thanh Tùng',phone:'0908 333 444',addr:'22 Nguyễn Đình Chiểu, Q.3',slot:'16:00 – 18:00',pkg:'Gói L — 169.000đ',note:'Để ở sảnh tầng 1'})">
+    <div class="o-top"><span class="o-id">#NW-3079</span><span class="o-badge delivering">Chờ giao</span></div>
+    <div class="o-customer">
+      <div class="o-avatar">NT</div>
+      <div><div class="o-cname">Ngô Thanh Tùng</div><div class="o-cphone">0908 333 444</div></div>
+    </div>
+    <div class="o-details">
+      <div class="o-row"><svg viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 1118 0z"/><circle cx="12" cy="10" r="3"/></svg><span>22 Nguyễn Đình Chiểu, Q.3</span></div>
+      <div class="o-row"><svg viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg><span>Giao trả: <strong>16:00 – 18:00</strong></span></div>
+    </div>
+    <div class="o-footer">
+      <span class="o-pkg">Gói L — 169.000đ</span>
+      <span class="o-time"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> 2h 10p</span>
+    </div>
+    <div class="o-actions">
+      <button class="o-btn call" onclick="event.stopPropagation()">📞 Gọi</button>
+      <button class="o-btn success" onclick="event.stopPropagation();updateStatus('NW-3079','done')">Đã giao xong</button>
+    </div>
+  </div>
+
+  <div class="o-card" onclick="openDetail({id:'NW-3076',status:'deliver',name:'Mai Hồng Nhung',phone:'0977 555 666',addr:'99 Lê Văn Sỹ, Phú Nhuận',slot:'18:00 – 20:00',pkg:'Gói S — 79.000đ',note:''})">
+    <div class="o-top"><span class="o-id">#NW-3076</span><span class="o-badge delivering">Chờ giao</span></div>
+    <div class="o-customer">
+      <div class="o-avatar">MN</div>
+      <div><div class="o-cname">Mai Hồng Nhung</div><div class="o-cphone">0977 555 666</div></div>
+    </div>
+    <div class="o-details">
+      <div class="o-row"><svg viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 1118 0z"/><circle cx="12" cy="10" r="3"/></svg><span>99 Lê Văn Sỹ, Phú Nhuận</span></div>
+      <div class="o-row"><svg viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg><span>Giao trả: <strong>18:00 – 20:00</strong></span></div>
+    </div>
+    <div class="o-footer">
+      <span class="o-pkg">Gói S — 79.000đ</span>
+      <span class="o-time"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> 3h 20p</span>
+    </div>
+    <div class="o-actions">
+      <button class="o-btn call" onclick="event.stopPropagation()">📞 Gọi</button>
+      <button class="o-btn success" onclick="event.stopPropagation();updateStatus('NW-3076','done')">Đã giao xong</button>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- Tab: Hoàn thành -->
+<div class="tab-content" id="tab-done">
+<div class="order-list">
+
+  <div class="o-card" onclick="openDetail({id:'NW-3075',status:'done',name:'Hoàng Nam',phone:'0934 567 890',addr:'88 Lý Tự Trọng, Q.1',slot:'14:00 – 16:00',pkg:'Gói L — 169.000đ',note:'',doneTime:'14:32'})">
+    <div class="o-top"><span class="o-id">#NW-3075</span><span class="o-badge done">Hoàn thành</span></div>
+    <div class="o-customer">
+      <div class="o-avatar">HN</div>
+      <div><div class="o-cname">Hoàng Nam</div><div class="o-cphone">0934 567 890</div></div>
+    </div>
+    <div class="o-footer" style="border:none;padding:0;margin:6px 0 0">
+      <span class="o-pkg">Gói L — 169.000đ</span>
+      <span class="o-time" style="color:var(--green)">✓ 14:32</span>
+    </div>
+  </div>
+
+  <div class="o-card" onclick="openDetail({id:'NW-3070',status:'done',name:'Đỗ Thảo',phone:'0945 678 901',addr:'200 Nguyễn Thị Minh Khai, Q.3',slot:'10:00 – 12:00',pkg:'Gói M — 119.000đ',note:'',doneTime:'13:15'})">
+    <div class="o-top"><span class="o-id">#NW-3070</span><span class="o-badge done">Hoàn thành</span></div>
+    <div class="o-customer">
+      <div class="o-avatar">DT</div>
+      <div><div class="o-cname">Đỗ Thảo</div><div class="o-cphone">0945 678 901</div></div>
+    </div>
+    <div class="o-footer" style="border:none;padding:0;margin:6px 0 0">
+      <span class="o-pkg">Gói M — 119.000đ</span>
+      <span class="o-time" style="color:var(--green)">✓ 13:15</span>
+    </div>
+  </div>
+
+  <div class="o-card" onclick="openDetail({id:'NW-3065',status:'done',name:'Lý Thanh Hà',phone:'0918 222 333',addr:'77 Võ Văn Tần, Q.3',slot:'08:00 – 10:00',pkg:'Gói L — 169.000đ',note:'',doneTime:'09:48'})">
+    <div class="o-top"><span class="o-id">#NW-3065</span><span class="o-badge done">Hoàn thành</span></div>
+    <div class="o-customer">
+      <div class="o-avatar">LH</div>
+      <div><div class="o-cname">Lý Thanh Hà</div><div class="o-cphone">0918 222 333</div></div>
+    </div>
+    <div class="o-footer" style="border:none;padding:0;margin:6px 0 0">
+      <span class="o-pkg">Gói L — 169.000đ</span>
+      <span class="o-time" style="color:var(--green)">✓ 09:48</span>
+    </div>
+  </div>
+
+  <div class="o-card" onclick="openDetail({id:'NW-3058',status:'done',name:'Trịnh Minh Đức',phone:'0939 444 555',addr:'250 Nguyễn Trãi, Q.5',slot:'08:00 – 10:00',pkg:'Gói M — 119.000đ',note:'',doneTime:'09:20'})">
+    <div class="o-top"><span class="o-id">#NW-3058</span><span class="o-badge done">Hoàn thành</span></div>
+    <div class="o-customer">
+      <div class="o-avatar">TĐ</div>
+      <div><div class="o-cname">Trịnh Minh Đức</div><div class="o-cphone">0939 444 555</div></div>
+    </div>
+    <div class="o-footer" style="border:none;padding:0;margin:6px 0 0">
+      <span class="o-pkg">Gói M — 119.000đ</span>
+      <span class="o-time" style="color:var(--green)">✓ 09:20</span>
+    </div>
+  </div>
+
+  <div class="o-card" onclick="openDetail({id:'NW-3052',status:'done',name:'Phan Yến Nhi',phone:'0966 777 888',addr:'18 Bùi Viện, Q.1',slot:'10:00 – 12:00',pkg:'Gói S — 79.000đ',note:'',doneTime:'11:05'})">
+    <div class="o-top"><span class="o-id">#NW-3052</span><span class="o-badge done">Hoàn thành</span></div>
+    <div class="o-customer">
+      <div class="o-avatar">PN</div>
+      <div><div class="o-cname">Phan Yến Nhi</div><div class="o-cphone">0966 777 888</div></div>
+    </div>
+    <div class="o-footer" style="border:none;padding:0;margin:6px 0 0">
+      <span class="o-pkg">Gói S — 79.000đ</span>
+      <span class="o-time" style="color:var(--green)">✓ 11:05</span>
+    </div>
+  </div>
+
+</div>
+</div>
+
+</div><!-- end app-container -->
+</div><!-- end page-orders -->
+
+<!-- PAGE: MAP -->
+<div class="page" id="page-map">
+<div class="app-container">
+  <div class="map-placeholder">
+    <svg viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" fill="none"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 1118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+    <p>Bản đồ lộ trình</p>
+    <small>Hiển thị vị trí các đơn hàng trên bản đồ</small>
+  </div>
+</div>
+</div>
+
+<!-- PAGE: NOTIFICATIONS -->
+<div class="page" id="page-noti">
+<div class="app-container">
+  <div class="page-header">
+    <h2>Thông báo</h2>
+    <p>Cập nhật mới nhất về đơn hàng</p>
+  </div>
+  <div class="noti-list">
+    <div class="noti-card unread">
+      <div class="noti-icon blue">📦</div>
+      <div class="noti-body">
+        <div class="noti-title">Đơn mới #NW-3102</div>
+        <div class="noti-desc">Bạn có đơn mới cần lấy tại 123 Nguyễn Huệ, Q.1. Khung giờ 10:00 – 12:00.</div>
+        <div class="noti-time">5 phút trước</div>
+      </div>
+    </div>
+    <div class="noti-card unread">
+      <div class="noti-icon orange">⏰</div>
+      <div class="noti-body">
+        <div class="noti-title">Nhắc nhở lấy đồ</div>
+        <div class="noti-desc">Đơn #NW-3098 sắp hết hạn slot 10:00 – 12:00. Vui lòng lấy đồ sớm.</div>
+        <div class="noti-time">15 phút trước</div>
+      </div>
+    </div>
+    <div class="noti-card">
+      <div class="noti-icon green">✅</div>
+      <div class="noti-body">
+        <div class="noti-title">Giao thành công #NW-3075</div>
+        <div class="noti-desc">Đơn #NW-3075 đã giao thành công lúc 14:32. Khách hàng xác nhận.</div>
+        <div class="noti-time">1 giờ trước</div>
+      </div>
+    </div>
+    <div class="noti-card">
+      <div class="noti-icon green">✅</div>
+      <div class="noti-body">
+        <div class="noti-title">Giao thành công #NW-3070</div>
+        <div class="noti-desc">Đơn #NW-3070 đã giao thành công lúc 13:15. Khách hàng xác nhận.</div>
+        <div class="noti-time">2 giờ trước</div>
+      </div>
+    </div>
+    <div class="noti-card">
+      <div class="noti-icon blue">💰</div>
+      <div class="noti-body">
+        <div class="noti-title">Thu nhập hôm nay</div>
+        <div class="noti-desc">Bạn đã hoàn thành 8 đơn hôm nay. Tổng thu nhập: 245.000đ.</div>
+        <div class="noti-time">3 giờ trước</div>
+      </div>
+    </div>
+    <div class="noti-card">
+      <div class="noti-icon orange">📢</div>
+      <div class="noti-body">
+        <div class="noti-title">Cập nhật hệ thống</div>
+        <div class="noti-desc">NowWash Driver v2.1 với tính năng scan QR mới. Vui lòng cập nhật.</div>
+        <div class="noti-time">Hôm qua</div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- PAGE: ACCOUNT -->
+<div class="page" id="page-account">
+<div class="app-container">
+  <div class="page-header">
+    <h2>Tài khoản</h2>
+    <p>Quản lý thông tin cá nhân</p>
+  </div>
+
+  <div class="profile-card">
+    <div class="profile-avatar">TM</div>
+    <div class="profile-info">
+      <div class="profile-name">Trần Văn Minh</div>
+      <div class="profile-role">Tài xế NowWash</div>
+      <div class="profile-id">ID: DRV-0847</div>
+    </div>
+  </div>
+
+  <div class="profile-stats">
+    <div class="p-stat"><div class="p-stat-num">156</div><div class="p-stat-label">Tổng đơn</div></div>
+    <div class="p-stat"><div class="p-stat-num">4.9</div><div class="p-stat-label">Đánh giá</div></div>
+    <div class="p-stat"><div class="p-stat-num">98%</div><div class="p-stat-label">Đúng giờ</div></div>
+  </div>
+
+  <div class="menu-section">
+    <h4>Cài đặt</h4>
+    <div class="menu-list">
+      <div class="menu-item">
+        <svg viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span>Thông tin cá nhân</span>
+        <span class="arrow">›</span>
+      </div>
+      <div class="menu-item">
+        <svg viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+        <span>Đổi mật khẩu</span>
+        <span class="arrow">›</span>
+      </div>
+      <div class="menu-item">
+        <svg viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+        <span>Cài đặt thông báo</span>
+        <span class="arrow">›</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="menu-section">
+    <h4>Hỗ trợ</h4>
+    <div class="menu-list">
+      <div class="menu-item">
+        <svg viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
+        <span>Trợ giúp & FAQ</span>
+        <span class="arrow">›</span>
+      </div>
+      <div class="menu-item">
+        <svg viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 01-2.18 2A19.86 19.86 0 013.09 5.18 2 2 0 015.11 3h3a2 2 0 012 1.72c.13.81.36 1.6.68 2.34a2 2 0 01-.45 2.11L8.09 11.5a16 16 0 006.41 6.41l2.33-2.25a2 2 0 012.11-.45c.74.32 1.53.55 2.34.68a2 2 0 011.72 2.03z"/></svg>
+        <span>Hotline hỗ trợ</span>
+        <span class="arrow">›</span>
+      </div>
+      <div class="menu-item">
+        <svg viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M8 7h8M8 11h6M8 15h4"/></svg>
+        <span>Điều khoản sử dụng</span>
+        <span class="arrow">›</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="menu-section">
+    <div class="menu-list">
+      <div class="menu-item danger">
+        <svg viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        <span>Đăng xuất</span>
+      </div>
+    </div>
+  </div>
+
+  <p style="text-align:center;font-size:11px;color:var(--text4);padding:20px 0">NowWash Driver v2.1 · Powered by NowX</p>
+</div>
+</div>
+
+</div><!-- end main-content -->
+
+<!-- Detail Modal -->
+<div class="modal-overlay" id="detailModal" onclick="if(event.target===this)closeDetail()">
+  <div class="detail-modal">
+    <div class="modal-handle"></div>
+    <div class="detail-header">
+      <h3 id="detail-title">Đơn #NW-3102</h3>
+      <button class="detail-close" onclick="closeDetail()"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+    </div>
+
+    <div class="detail-section">
+      <h4>Khách hàng</h4>
+      <div class="detail-card">
+        <div class="detail-row">
+          <svg viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <div><div class="label">Tên</div><div class="value" id="d-name">Nguyễn Anh</div></div>
+        </div>
+        <div class="detail-row">
+          <svg viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 01-2.18 2A19.86 19.86 0 013.09 5.18 2 2 0 015.11 3h3a2 2 0 012 1.72c.13.81.36 1.6.68 2.34a2 2 0 01-.45 2.11L8.09 11.5a16 16 0 006.41 6.41l2.33-2.25a2 2 0 012.11-.45c.74.32 1.53.55 2.34.68a2 2 0 011.72 2.03z"/></svg>
+          <div><div class="label">Số điện thoại</div><div class="value" id="d-phone">0901 234 567</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="detail-section">
+      <h4>Địa chỉ</h4>
+      <div class="detail-card">
+        <div class="detail-row">
+          <svg viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 1118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          <div><div class="label">Nhận đồ</div><div class="value" id="d-addr">123 Nguyễn Huệ, Q.1</div></div>
+        </div>
+        <div class="detail-row">
+          <svg viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+          <div><div class="label">Khung giờ</div><div class="value" id="d-slot">10:00 – 12:00</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="detail-section">
+      <h4>Gói dịch vụ</h4>
+      <div class="detail-card">
+        <div class="detail-row">
+          <svg viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="8" width="18" height="10" rx="2"/><path d="M5 4h14l2 4H3l2-4z"/></svg>
+          <div><div class="label">Gói</div><div class="value" id="d-pkg">Gói M — 119.000đ</div></div>
+        </div>
+        <div class="detail-row">
+          <svg viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M8 7h8M8 11h6M8 15h4"/></svg>
+          <div><div class="label">Ghi chú</div><div class="value" id="d-note">Để đồ ở quầy bảo vệ tầng trệt</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="detail-section" id="d-qr-section">
+      <h4>Mã QR đơn hàng</h4>
+      <div class="detail-qr">
+        <div class="qr-box">QR Code</div>
+        <p style="font-size:12px;color:var(--text3)">Quét khi nhận & giao đồ</p>
+      </div>
+    </div>
+
+    <div class="detail-actions" id="d-actions">
+      <button class="o-btn call" onclick="closeDetail()">📞 Gọi khách</button>
+      <button class="o-btn primary" id="d-action" onclick="closeDetail()">Đã lấy đồ</button>
+    </div>
+  </div>
+</div>
+
+<!-- Bottom Nav -->
+<div class="bottom-nav">
+<div class="bottom-nav-inner">
+  <button class="bnav-item active" onclick="showPage('orders',this)">
+    <svg viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+    <span>Đơn hàng</span>
+  </button>
+  <button class="bnav-item" onclick="showPage('map',this)">
+    <svg viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 1118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+    <span>Bản đồ</span>
+  </button>
+  <button class="bnav-item" onclick="showPage('noti',this)">
+    <svg viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+    <span>Thông báo</span>
+  </button>
+  <button class="bnav-item" onclick="showPage('account',this)">
+    <svg viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    <span>Tài khoản</span>
+  </button>
+</div>
+</div>
+
+<script>
+function showPage(id,btn){
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active')});
+  document.getElementById('page-'+id).classList.add('active');
+  document.querySelectorAll('.bnav-item').forEach(function(b){b.classList.remove('active')});
+  if(btn) btn.classList.add('active');
+  // Show/hide order-specific UI
+  var tabsWrap=document.getElementById('tabs-wrap');
+  if(id==='orders'){tabsWrap.style.display='';}
+  else{tabsWrap.style.display='none';}
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function switchTab(id){
+  document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active')});
+  document.querySelectorAll('.tab-content').forEach(function(c){c.classList.remove('active')});
+  document.getElementById('tab-'+id).classList.add('active');
+  var tabs=document.querySelectorAll('.tab');
+  var map={pickup:0,deliver:1,done:2};
+  if(map[id]!==undefined) tabs[map[id]].classList.add('active');
+}
+function openDetail(o){
+  document.getElementById('detail-title').textContent='Đơn #'+o.id;
+  document.getElementById('d-name').textContent=o.name;
+  document.getElementById('d-phone').textContent=o.phone;
+  document.getElementById('d-addr').textContent=o.addr;
+  document.getElementById('d-slot').textContent=o.slot;
+  document.getElementById('d-pkg').textContent=o.pkg;
+  document.getElementById('d-note').textContent=o.note||'Không có';
+  var actions=document.getElementById('d-actions');
+  var qrSection=document.getElementById('d-qr-section');
+  if(o.status==='pickup'){
+    qrSection.style.display='';
+    actions.innerHTML='<button class="o-btn call" onclick="closeDetail()">📞 Gọi khách</button><button class="o-btn primary" onclick="closeDetail();updateStatus(\''+o.id+'\',\'picked\')">Đã lấy đồ</button>';
+  } else if(o.status==='deliver'){
+    qrSection.style.display='';
+    actions.innerHTML='<button class="o-btn call" onclick="closeDetail()">📞 Gọi khách</button><button class="o-btn success" onclick="closeDetail();updateStatus(\''+o.id+'\',\'done\')">Đã giao xong</button>';
+  } else {
+    qrSection.style.display='none';
+    actions.innerHTML='<div style="width:100%;text-align:center;padding:8px 0;font-size:13px;color:var(--green);font-weight:500">✓ Hoàn thành lúc '+(o.doneTime||'--:--')+'</div>';
+  }
+  document.getElementById('detailModal').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeDetail(){
+  document.getElementById('detailModal').classList.remove('open');
+  document.body.style.overflow='';
+}
+function updateStatus(id,status){
+  var names={picked:'đã lấy đồ',done:'đã giao xong'};
+  alert('Đơn #'+id+' '+names[status]+'! Zalo ZNS sẽ thông báo cho khách.');
+}
+function toggleTheme(){
+  var html=document.documentElement;
+  var icon=document.getElementById('theme-icon');
+  if(html.getAttribute('data-theme')==='dark'){
+    html.removeAttribute('data-theme');
+    localStorage.setItem('nw-theme','light');
+    icon.innerHTML='<circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>';
+  } else {
+    html.setAttribute('data-theme','dark');
+    localStorage.setItem('nw-theme','dark');
+    icon.innerHTML='<path d="M21 12.79A9 9 0 1111.21 3a7 7 0 009.79 9.79z"/>';
+  }
+}
+(function(){
+  var s=localStorage.getItem('nw-theme');
+  if(s==='dark'||(!s&&window.matchMedia('(prefers-color-scheme:dark)').matches)){
+    document.documentElement.setAttribute('data-theme','dark');
+    var i=document.getElementById('theme-icon');
+    if(i) i.innerHTML='<path d="M21 12.79A9 9 0 1111.21 3a7 7 0 009.79 9.79z"/>';
+  }
+})();
+</script>
+</body>
+</html>
