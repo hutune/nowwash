@@ -32,7 +32,7 @@ erDiagram
         uuid id PK
         uuid user_id FK
         uuid cluster_id FK
-        string status "PENDING, PICKED_UP, IN_WASH..."
+        string status "CREATED, PICKED_UP, AT_HUB, IN_WORKSHOP, IN_PROCESS, QC_STAGE, PACKING_STAGE, READY_TO_DELIVER, OUT_FOR_DELIVERY, DELIVERY_EXCEPTION, COMPLETED, CLOSED_FAILED"
         uuid current_bag_id FK
         boolean is_subscription_order
         datetime expected_pickup
@@ -57,7 +57,7 @@ erDiagram
     ORDER_EVENTS {
         uuid id PK
         uuid order_id FK
-        string event_type "PICKUP_SCAN, QC_PASS, DELIVERED"
+        string event_type "BAG_ASSIGNED, SEAL_APPLIED, PICKUP_SCAN, HUB_RECEIVED, IN_WORKSHOP, SEAL_CHECK_PASS, WASH_STARTED, WASH_ENDED, QC_FAIL, QC_PASS, PACKING_COMPLETED, OUT_FOR_DELIVERY, DELIVERY_ATTEMPT_FAILED, RETURNED_TO_STAGING, DELIVERED, SERVICE_FAILURE_CLOSED"
         uuid triggered_by "Staff ID"
         json metadata "Chứa hình ảnh xác minh, GPS"
         datetime created_at
@@ -85,12 +85,17 @@ stateDiagram-v2
     QC_STAGE --> REWASH_REQUIRED: QC Fail (Event: QC_FAIL)
     REWASH_REQUIRED --> IN_PROCESS
     
-    QC_STAGE --> READY_TO_DELIVER: QC Pass, gắn Seal đóng gói (Event: QC_PASS)
+    QC_STAGE --> PACKING_STAGE: QC Pass (Event: QC_PASS)
+    PACKING_STAGE --> READY_TO_DELIVER: Pack + label + staging complete (Event: PACKING_COMPLETED)
     
     READY_TO_DELIVER --> OUT_FOR_DELIVERY: (Event: OUT_FOR_DELIVERY)
+    OUT_FOR_DELIVERY --> DELIVERY_EXCEPTION: Attempt fail / return required (Event: DELIVERY_ATTEMPT_FAILED)
+    DELIVERY_EXCEPTION --> READY_TO_DELIVER: Returned and re-staged for next attempt (Event: RETURNED_TO_STAGING)
     OUT_FOR_DELIVERY --> COMPLETED: Giao thành công (Event: DELIVERED)
+    DELIVERY_EXCEPTION --> CLOSED_FAILED: Terminal service failure disposition (Event: SERVICE_FAILURE_CLOSED)
     
     COMPLETED --> [*]
+    CLOSED_FAILED --> [*]
 ```
 
 ## 4. Đặc tả kĩ thuật (Dự kiến)

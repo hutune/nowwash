@@ -25,3 +25,4 @@ out/
 build/
 .env.local
 .env.*.local
+.vercel

@@ -3,6 +3,9 @@
 
 Tài liệu này quy định thao tác tay chân bắt buộc đối với nhân sự hiện trường (Shipper) và nhân sự tại Xưởng (Workshop) để đảm bảo không gãy luồng Event-Sourced của hệ thống. Nguyên tắc cốt lõi: **"Không có ảnh & Không có Scan QR = Không có sự thật"**.
 
+> [!NOTE]
+> Bản SOP chi tiết để training và vận hành hằng ngày: `docs/05_Operations/laundry_operations_sop_detailed.md`
+
 ---
 
 ## 1. SOP Dành cho Shipper (Quy trình nhận đồ - Pickup)

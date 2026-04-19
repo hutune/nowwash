@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 336 96" role="img" aria-label="NowWash logo lockup">
+  <path
+    fill="#0077B6"
+    fill-rule="evenodd"
+    clip-rule="evenodd"
+    d="M24 0C10.745 0 0 10.745 0 24v48c0 13.255 10.745 24 24 24h48c13.255 0 24-10.745 24-24V24C96 10.745 85.255 0 72 0H24Zm-5 24h14.5l8.5 34.5L48 34l6 24.5L62.5 24H77L64 72H53L48 51 43 72H32L19 24Z"
+  />
+  <text
+    x="116"
+    y="62"
+    fill="#122031"
+    font-family="Space Grotesk, Be Vietnam Pro, IBM Plex Sans, sans-serif"
+    font-size="48"
+    font-weight="700"
+    letter-spacing="-3"
+  >NowWash</text>
+</svg>
